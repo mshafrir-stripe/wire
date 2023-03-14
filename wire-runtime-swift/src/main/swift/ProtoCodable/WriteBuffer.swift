@@ -50,6 +50,8 @@ final class WriteBuffer {
     // MARK: - Public Methods
 
     func append(_ data: Data) {
+        guard !data.isEmpty else { return }
+
         expandIfNeeded(adding: data.count)
 
         data.copyBytes(to: storage.advanced(by: count), count: data.count)
@@ -64,6 +66,8 @@ final class WriteBuffer {
     }
 
     func append(_ value: [UInt8]) {
+        guard !value.isEmpty else { return }
+
         expandIfNeeded(adding: value.count)
 
         for byte in value {
@@ -74,6 +78,8 @@ final class WriteBuffer {
 
     func append(_ value: WriteBuffer) {
         precondition(value !== self)
+        guard value.count > 0 else { return }
+
         expandIfNeeded(adding: value.count)
 
         memcpy(storage.advanced(by: count), value.storage, value.count)
@@ -81,6 +87,8 @@ final class WriteBuffer {
     }
 
     func append(_ value: UnsafeRawBufferPointer) {
+        guard value.count > 0 else { return }
+        
         expandIfNeeded(adding: value.count)
 
         memcpy(storage.advanced(by: count), value.baseAddress, value.count)
