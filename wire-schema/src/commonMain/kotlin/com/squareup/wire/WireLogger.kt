@@ -37,7 +37,7 @@ interface WireLogger {
    * [SwiftTarget][com.squareup.wire.schema.SwiftTarget], the name will be "Swift". For
    * [ProtoTarget][com.squareup.wire.schema.ProtoTarget], the name will be "Proto".
    */
-  fun artifactHandled(outputPath: Path, qualifiedName: String, targetName: String)
+  fun artifactHandled(outputPath: Path, qualifiedName: String, targetName: String, dryRun: Boolean)
 
   /**
    * This is called when an artifact has been passed down to a

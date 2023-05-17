@@ -56,8 +56,17 @@ internal object GradleWireLogger : WireLogger {
     )
   }
 
-  override fun artifactHandled(outputPath: Path, qualifiedName: String, targetName: String) {
-    slf4jLogger.info("Writing $qualifiedName to $outputPath (target=$targetName)")
+  override fun artifactHandled(
+    outputPath: Path,
+    qualifiedName: String,
+    targetName: String,
+    dryRun: Boolean
+  ) {
+    if (dryRun) {
+      slf4jLogger.info("Would be writing $qualifiedName to $outputPath (target=$targetName)")
+    }else {
+      slf4jLogger.info("Writing $qualifiedName to $outputPath (target=$targetName)")
+    }
   }
 
   override fun artifactSkipped(type: ProtoType, targetName: String) {

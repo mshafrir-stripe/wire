@@ -61,7 +61,16 @@ internal class ConsoleWireLogger : WireLogger {
     )
   }
 
-  override fun artifactHandled(outputPath: Path, qualifiedName: String, targetName: String) {
+  override fun artifactHandled(
+    outputPath: Path,
+    qualifiedName: String,
+    targetName: String,
+    dryRun: Boolean
+  ) {
+    if (dryRun) {
+      println("Would be writing $qualifiedName to $outputPath (target=$targetName)")
+      return
+    }
     if (quiet) {
       println(qualifiedName)
     } else {

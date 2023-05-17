@@ -21,7 +21,12 @@ import okio.Path
 class WireTestLogger : WireLogger {
 
   val artifactHandled = ArrayDeque<Triple<Path, String, String>>()
-  override fun artifactHandled(outputPath: Path, qualifiedName: String, targetName: String) {
+  override fun artifactHandled(
+    outputPath: Path,
+    qualifiedName: String,
+    targetName: String,
+    dryRun: Boolean
+  ) {
     this.artifactHandled.add(Triple(outputPath, qualifiedName, targetName))
   }
 

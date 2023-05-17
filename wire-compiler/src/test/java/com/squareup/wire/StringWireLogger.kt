@@ -27,7 +27,8 @@ internal class StringWireLogger : WireLogger {
   @Synchronized override fun artifactHandled(
     outputPath: Path,
     qualifiedName: String,
-    targetName: String
+    targetName: String,
+    dryRun: Boolean
   ) {
     buffer.append("$outputPath $qualifiedName (target=$targetName)\n")
   }

@@ -63,6 +63,8 @@ sealed class Target : Serializable {
    */
   abstract val outDirectory: String
 
+  abstract val dryRun: Boolean
+
   /**
    * Returns a new Target object that is a copy of this one, but with the given fields updated.
    */
@@ -73,6 +75,7 @@ sealed class Target : Serializable {
     excludes: List<String> = this.excludes,
     exclusive: Boolean = this.exclusive,
     outDirectory: String = this.outDirectory,
+    dryRun: Boolean = this.dryRun
   ): Target
 
   abstract fun newHandler(): SchemaHandler
@@ -81,6 +84,7 @@ sealed class Target : Serializable {
 // TODO(Benoit) Get JavaGenerator to expose a factory from its module. Code should not be here.
 /** Generate `.java` sources. */
 data class JavaTarget(
+  override val dryRun: Boolean = false,
   override val includes: List<String> = listOf("*"),
   override val excludes: List<String> = listOf(),
 
@@ -164,9 +168,12 @@ data class JavaTarget(
           javaFile.packageName.replace(".", "/") /
           "${javaTypeName.simpleName()}.java"
 
-        context.logger.artifactHandled(
-          outDirectory, "${javaFile.packageName}.${javaFile.typeSpec.name}", "Java"
-        )
+          context.logger.artifactHandled(
+            outDirectory, "${javaFile.packageName}.${javaFile.typeSpec.name}", "Java", dryRun = dryRun,
+          )
+
+        if (dryRun) return filePath
+
         try {
           context.fileSystem.createDirectories(filePath.parent!!)
           context.fileSystem.write(filePath) {
@@ -186,13 +193,15 @@ data class JavaTarget(
     includes: List<String>,
     excludes: List<String>,
     exclusive: Boolean,
-    outDirectory: String
+    outDirectory: String,
+    dryRun: Boolean,
   ): Target {
     return copy(
       includes = includes,
       excludes = excludes,
       exclusive = exclusive,
       outDirectory = outDirectory,
+      dryRun = dryRun,
     )
   }
 }
@@ -200,6 +209,7 @@ data class JavaTarget(
 // TODO(Benoit) Get kotlinGenerator to expose a factory from its module. Code should not be here.
 /** Generate `.kt` sources. */
 data class KotlinTarget(
+  override val dryRun: Boolean = false,
   override val includes: List<String> = listOf("*"),
   override val excludes: List<String> = listOf(),
 
@@ -346,8 +356,10 @@ data class KotlinTarget(
 
         context.logger.artifactHandled(
           modulePath, "${kotlinFile.packageName}.${(kotlinFile.members.first() as TypeSpec).name}",
-          "Kotlin"
+          "Kotlin", dryRun = dryRun
         )
+        if (dryRun) return filePath
+
         try {
           context.fileSystem.createDirectories(filePath.parent!!)
           context.fileSystem.write(filePath) {
@@ -365,19 +377,22 @@ data class KotlinTarget(
     includes: List<String>,
     excludes: List<String>,
     exclusive: Boolean,
-    outDirectory: String
+    outDirectory: String,
+    dryRun: Boolean,
   ): Target {
     return copy(
       includes = includes,
       excludes = excludes,
       exclusive = exclusive,
       outDirectory = outDirectory,
+      dryRun = dryRun,
     )
   }
 }
 
 // TODO(Benoit) Get SwiftGenerator to expose a factory from its module. Code should not be here.
 data class SwiftTarget(
+  override val dryRun: Boolean = false,
   override val includes: List<String> = listOf("*"),
   override val excludes: List<String> = listOf(),
   override val exclusive: Boolean = true,
@@ -408,6 +423,13 @@ data class SwiftTarget(
           .build()
 
         val filePath = modulePath / "${swiftFile.name}.swift"
+
+        context.logger.artifactHandled(
+          modulePath, "${swiftFile.moduleName}.${typeName.canonicalName} for ${type.location.withPathOnly()}", "Swift", dryRun = dryRun,
+        )
+
+        if (dryRun) return filePath
+
         try {
           context.fileSystem.write(filePath) {
             writeUtf8(swiftFile.toString())
@@ -417,10 +439,6 @@ data class SwiftTarget(
             "Error emitting ${swiftFile.moduleName}.${typeName.canonicalName} to $modulePath", e
           )
         }
-
-        context.logger.artifactHandled(
-          modulePath, "${swiftFile.moduleName}.${typeName.canonicalName}", "Swift"
-        )
         return filePath
       }
 
@@ -437,18 +455,21 @@ data class SwiftTarget(
     includes: List<String>,
     excludes: List<String>,
     exclusive: Boolean,
-    outDirectory: String
+    outDirectory: String,
+    dryRun: Boolean,
   ): Target {
     return copy(
       includes = includes,
       excludes = excludes,
       exclusive = exclusive,
       outDirectory = outDirectory,
+      dryRun = dryRun,
     )
   }
 }
 
 data class ProtoTarget(
+  override val dryRun: Boolean = false,
   override val outDirectory: String
 ) : Target() {
   override val includes: List<String> = listOf()
@@ -468,7 +489,8 @@ data class ProtoTarget(
             .substringBeforeLast("/", missingDelimiterValue = ".")
           val outputDirectory = outDirectory / relativePath
           val outputFilePath = outputDirectory / "${protoFile.name()}.proto"
-          context.logger.artifactHandled(outputDirectory, protoFile.location.path, "Proto")
+          context.logger.artifactHandled(outputDirectory, protoFile.location.path, "Proto", dryRun=dryRun)
+          if (dryRun) return
 
           try {
             context.fileSystem.createDirectories(outputFilePath.parent!!)
@@ -495,15 +517,18 @@ data class ProtoTarget(
     includes: List<String>,
     excludes: List<String>,
     exclusive: Boolean,
-    outDirectory: String
+    outDirectory: String,
+    dryRun: Boolean,
   ): Target {
     return copy(
       outDirectory = outDirectory,
+      dryRun = dryRun,
     )
   }
 }
 
 data class CustomTarget(
+  override val dryRun: Boolean = false,
   override val includes: List<String> = listOf("*"),
   override val excludes: List<String> = listOf(),
   override val exclusive: Boolean = true,
@@ -514,13 +539,15 @@ data class CustomTarget(
     includes: List<String>,
     excludes: List<String>,
     exclusive: Boolean,
-    outDirectory: String
+    outDirectory: String,
+    dryRun: Boolean,
   ): Target {
-    return this.copy(
+    return copy(
       includes = includes,
       excludes = excludes,
       exclusive = exclusive,
       outDirectory = outDirectory,
+      dryRun = dryRun,
     )
   }
 

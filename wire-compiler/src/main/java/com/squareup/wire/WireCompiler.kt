@@ -109,6 +109,7 @@ class WireCompiler internal constructor(
   val permitPackageCycles: Boolean,
   val javaInterop: Boolean,
   val kotlinBoxOneOfsMinSize: Int,
+  val dryRun: Boolean,
 ) {
 
   @Throws(IOException::class)
@@ -116,6 +117,7 @@ class WireCompiler internal constructor(
     val targets = mutableListOf<Target>()
     if (javaOut != null) {
       targets += JavaTarget(
+        dryRun = dryRun,
         outDirectory = javaOut,
         android = emitAndroid,
         androidAnnotations = emitAndroidAnnotations,
@@ -125,6 +127,7 @@ class WireCompiler internal constructor(
       )
     } else if (kotlinOut != null) {
       targets += KotlinTarget(
+        dryRun = dryRun,
         outDirectory = kotlinOut,
         android = emitAndroid,
         javaInterop = javaInterop,
@@ -133,7 +136,9 @@ class WireCompiler internal constructor(
         boxOneOfsMinSize = kotlinBoxOneOfsMinSize,
       )
     } else if (swiftOut != null) {
+      println("Swift with $dryRun")
       targets += SwiftTarget(
+        dryRun = dryRun,
         outDirectory = swiftOut
       )
     } else if (customOut != null || schemaHandlerFactoryClass != null) {
@@ -141,6 +146,7 @@ class WireCompiler internal constructor(
         throw IllegalArgumentException("Both custom_out and schema_handler_factory_class need to be set")
       }
       targets += CustomTarget(
+        dryRun = dryRun,
         outDirectory = customOut,
         schemaHandlerFactory = newSchemaHandler(schemaHandlerFactoryClass)
       )
@@ -211,6 +217,7 @@ class WireCompiler internal constructor(
     private const val FILES_FLAG = "--files="
     private const val INCLUDES_FLAG = "--includes="
     private const val EXCLUDES_FLAG = "--excludes="
+    private const val DRY_RUN = "--dry-run"
     private const val MANIFEST_FLAG = "--experimental-module-manifest="
     private const val ANDROID = "--android"
     private const val ANDROID_ANNOTATIONS = "--android-annotations"
@@ -264,6 +271,7 @@ class WireCompiler internal constructor(
       var emitAndroid = false
       var emitAndroidAnnotations = false
       var emitCompact = false
+      var dryRun = false
       var emitDeclaredOptions = true
       var emitAppliedOptions = true
       var permitPackageCycles = false
@@ -332,6 +340,7 @@ class WireCompiler internal constructor(
           arg == ANDROID -> emitAndroid = true
           arg == ANDROID_ANNOTATIONS -> emitAndroidAnnotations = true
           arg == COMPACT -> emitCompact = true
+          arg == DRY_RUN -> dryRun = true
           arg == SKIP_DECLARED_OPTIONS -> emitDeclaredOptions = false
           arg == SKIP_APPLIED_OPTIONS -> emitAppliedOptions = false
           arg == PERMIT_PACKAGE_CYCLES_OPTIONS -> permitPackageCycles = true
@@ -367,6 +376,7 @@ class WireCompiler internal constructor(
         emitAndroid = emitAndroid,
         emitAndroidAnnotations = emitAndroidAnnotations,
         emitCompact = emitCompact,
+        dryRun = dryRun,
         emitDeclaredOptions = emitDeclaredOptions,
         emitAppliedOptions = emitAppliedOptions,
         permitPackageCycles = permitPackageCycles,

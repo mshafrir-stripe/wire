@@ -1278,7 +1278,8 @@ class WireRunTest {
       override fun artifactHandled(
         outputPath: Path,
         qualifiedName: String,
-        targetName: String
+        targetName: String,
+        dryRun: Boolean
       ) = Unit
 
       override fun artifactSkipped(type: ProtoType, targetName: String) = Unit
