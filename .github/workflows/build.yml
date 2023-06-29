@@ -184,7 +184,7 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_NEXUS_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ARTIFACT_SIGNING_PRIVATE_KEY }}
 
-      - name: Plublish plugin to Gradle portal
+      - name: Publish plugin to Gradle portal
         run: |
           ./gradlew publishPluginToGradlePortalIfRelease --stacktrace
         env:

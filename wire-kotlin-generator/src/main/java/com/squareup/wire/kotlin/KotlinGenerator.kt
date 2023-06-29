@@ -77,7 +77,6 @@ import com.squareup.wire.internal.LongArrayList
 import com.squareup.wire.internal.boxedOneOfClassName
 import com.squareup.wire.internal.boxedOneOfKeyFieldName
 import com.squareup.wire.internal.boxedOneOfKeysFieldName
-import com.squareup.wire.kotlin.grpcserver.KotlinGrpcGenerator
 import com.squareup.wire.schema.EnclosingType
 import com.squareup.wire.schema.EnumConstant
 import com.squareup.wire.schema.EnumType
@@ -292,16 +291,16 @@ class KotlinGenerator private constructor(
    *
    * These adapters allow us to use Wire based gRPC as io.grpc.BindableService
    */
-  fun generateGrpcServerAdapter(service: Service): Map<ClassName, TypeSpec> {
-    val result = mutableMapOf<ClassName, TypeSpec>()
-
-    val protoFile: ProtoFile? = schema.protoFile(service.location.path)
-    val (grpcClassName, grpcSpec) = KotlinGrpcGenerator(typeToKotlinName, singleMethodServices, rpcCallStyle == RpcCallStyle.SUSPENDING)
-      .generateGrpcServer(service, protoFile, schema)
-    result[grpcClassName] = grpcSpec
-
-    return result
-  }
+//  fun generateGrpcServerAdapter(service: Service): Map<ClassName, TypeSpec> {
+//    val result = mutableMapOf<ClassName, TypeSpec>()
+//
+//    val protoFile: ProtoFile? = schema.protoFile(service.location.path)
+//    val (grpcClassName, grpcSpec) = KotlinGrpcGenerator(typeToKotlinName, singleMethodServices, rpcCallStyle == RpcCallStyle.SUSPENDING)
+//      .generateGrpcServer(service, protoFile, schema)
+//    result[grpcClassName] = grpcSpec
+//
+//    return result
+//  }
 
   private fun generateService(
     service: Service,

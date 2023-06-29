@@ -118,12 +118,12 @@ class KotlinSchemaHandler(
       }
     }
 
-    if (grpcServerCompatible) {
-      val map = kotlinGenerator.generateGrpcServerAdapter(service)
-      for ((className, typeSpec) in map) {
-        generatedPaths.add(write(className, typeSpec, service.type, service.location, context))
-      }
-    }
+//    if (grpcServerCompatible) {
+//      val map = kotlinGenerator.generateGrpcServerAdapter(service)
+//      for ((className, typeSpec) in map) {
+//        generatedPaths.add(write(className, typeSpec, service.type, service.location, context))
+//      }
+//    }
 
     return generatedPaths
   }
