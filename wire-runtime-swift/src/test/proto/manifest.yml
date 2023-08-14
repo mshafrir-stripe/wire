@@ -1,0 +1,14 @@
+---
+squareup_protos_rpc:
+  roots:
+  - squareup.protos.rpc.Response
+  prunes:
+  - google.protobuf.*
+squareup_protos_sync:
+  roots:
+  - squareup.protos.sync.GetResponse
+  - squareup.protos.sync.SyncErrorCode
+  dependencies:
+  - squareup_protos_rpc
+  prunes:
+  - google.protobuf.*

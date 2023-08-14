@@ -104,7 +104,8 @@ val generateTestProtos by tasks.creating(JavaExec::class) {
   mainClass.set("com.squareup.wire.WireCompiler")
   args = listOf(
     "--proto_path=$protoPath",
-    "--swift_out=$swiftOut"
+    "--swift_out=$swiftOut",
+    "--experimental-module-manifest=$protoPath/manifest.yml"
   )
 }
 
