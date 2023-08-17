@@ -590,6 +590,46 @@ class PrunerTest {
     assertThat((pruned.getType("Message") as MessageType).extensionField("e")).isNull()
   }
 
+ @Test
+  fun testSomething() {
+    val schema = buildSchema {
+      add(
+        "first.proto".toPath(),
+        """
+             |package squareup.api.rpc;
+             |message Message {
+             |  extensions 100 to 200;
+             |
+             |  optional string a = 1;
+             |  optional string b = 2;
+             |}
+             |message SomeOtherMessage {
+             |  optional string a = 1;
+             }
+        """.trimMargin(),
+      )
+      add(
+        "second.proto".toPath(),
+        """
+             |package squareup.api.sync;
+             |import "first.proto";
+             |extend squareup.api.rpc.Message {
+             |  optional squareup.api.rpc.SomeOtherMessage some_other_message = 100;
+             |}
+        """.trimMargin(),
+      )
+    }
+    val pruned = schema.prune(
+      PruningRules.Builder()
+        .addRoot("squareup.api.rpc.Message")
+        .prune("squareup.api.rpc.Message#some_other_maaessage")
+        .build(),
+    )
+    assertThat((pruned.getType("squareup.api.rpc.Message") as MessageType).field("a")).isNotNull()
+    assertThat((pruned.getType("squareup.api.rpc.Message") as MessageType).field("b")).isNotNull()
+    assertThat((pruned.getType("squareup.api.rpc.Message") as MessageType).extensionField("some_other_message")).isNull()
+  }  
+
   @Test
   fun retainingTypeRetainsExtensionMembers() {
     val schema = buildSchema {
