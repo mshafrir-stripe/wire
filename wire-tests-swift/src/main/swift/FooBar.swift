@@ -7,6 +7,7 @@ public struct FooBar {
 
     public var foo: Int32?
     public var bar: String?
+    @Defaulted(defaultValue: FooBar.Nested())
     public var baz: FooBar.Nested?
     public var qux: UInt64?
     public var fred: [Float] = []
@@ -80,7 +81,7 @@ extension FooBar {
     ) {
         self.foo = foo
         self.bar = bar
-        self.baz = baz
+        _baz.wrappedValue = baz
         self.qux = qux
         self.fred = fred
         self.daisy = daisy
@@ -310,7 +311,7 @@ extension FooBar : Proto2Codable {
 
         self.foo = foo
         self.bar = bar
-        self.baz = baz
+        _baz.wrappedValue = baz
         self.qux = qux
         self.fred = fred
         self.daisy = daisy
@@ -343,7 +344,7 @@ extension FooBar : Codable {
         let container = try decoder.container(keyedBy: Wire.StringLiteralCodingKeys.self)
         self.foo = try container.decodeIfPresent(Swift.Int32.self, forKey: "foo")
         self.bar = try container.decodeIfPresent(Swift.String.self, forKey: "bar")
-        self.baz = try container.decodeIfPresent(FooBar.Nested.self, forKey: "baz")
+        _baz.wrappedValue = try container.decodeIfPresent(FooBar.Nested.self, forKey: "baz")
         self.qux = try container.decodeIfPresent(stringEncoded: Swift.UInt64.self, forKey: "qux")
         self.fred = try container.decodeProtoArray(Swift.Float.self, forKey: "fred")
         self.daisy = try container.decodeIfPresent(Swift.Double.self, forKey: "daisy")

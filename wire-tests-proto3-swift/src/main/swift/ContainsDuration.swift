@@ -5,6 +5,7 @@ import Wire
 
 public struct ContainsDuration {
 
+    @Defaulted(defaultValue: Duration())
     public var duration: Duration?
     public var unknownFields: Foundation.Data = .init()
 
@@ -20,7 +21,7 @@ extension ContainsDuration {
     @_disfavoredOverload
     @available(*, deprecated)
     public init(duration: Duration? = nil) {
-        self.duration = duration
+        _duration.wrappedValue = duration
     }
 
 }
@@ -63,7 +64,7 @@ extension ContainsDuration : Proto3Codable {
         }
         self.unknownFields = try reader.endMessage(token: token)
 
-        self.duration = duration
+        _duration.wrappedValue = duration
     }
 
     public func encode(to writer: Wire.ProtoWriter) throws {
@@ -78,7 +79,7 @@ extension ContainsDuration : Codable {
 
     public init(from decoder: Swift.Decoder) throws {
         let container = try decoder.container(keyedBy: Wire.StringLiteralCodingKeys.self)
-        self.duration = try container.decodeIfPresent(Duration.self, forKey: "duration")
+        _duration.wrappedValue = try container.decodeIfPresent(Duration.self, forKey: "duration")
     }
 
     public func encode(to encoder: Swift.Encoder) throws {

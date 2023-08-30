@@ -6,6 +6,7 @@ import Wire
 public struct VersionOne {
 
     public var i: Int32?
+    @Defaulted(defaultValue: NestedVersionOne())
     public var obj: NestedVersionOne?
     public var en: EnumVersionOne?
     public var unknownFields: Foundation.Data = .init()
@@ -27,7 +28,7 @@ extension VersionOne {
         en: EnumVersionOne? = nil
     ) {
         self.i = i
-        self.obj = obj
+        _obj.wrappedValue = obj
         self.en = en
     }
 
@@ -76,7 +77,7 @@ extension VersionOne : Proto2Codable {
         self.unknownFields = try reader.endMessage(token: token)
 
         self.i = i
-        self.obj = obj
+        _obj.wrappedValue = obj
         self.en = en
     }
 
@@ -95,7 +96,7 @@ extension VersionOne : Codable {
     public init(from decoder: Swift.Decoder) throws {
         let container = try decoder.container(keyedBy: Wire.StringLiteralCodingKeys.self)
         self.i = try container.decodeIfPresent(Swift.Int32.self, forKey: "i")
-        self.obj = try container.decodeIfPresent(NestedVersionOne.self, forKey: "obj")
+        _obj.wrappedValue = try container.decodeIfPresent(NestedVersionOne.self, forKey: "obj")
         self.en = try container.decodeIfPresent(EnumVersionOne.self, forKey: "en")
     }
 

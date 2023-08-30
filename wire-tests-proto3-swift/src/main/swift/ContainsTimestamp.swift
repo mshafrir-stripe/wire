@@ -5,6 +5,7 @@ import Wire
 
 public struct ContainsTimestamp {
 
+    @Defaulted(defaultValue: Timestamp())
     public var timestamp: Timestamp?
     public var unknownFields: Foundation.Data = .init()
 
@@ -20,7 +21,7 @@ extension ContainsTimestamp {
     @_disfavoredOverload
     @available(*, deprecated)
     public init(timestamp: Timestamp? = nil) {
-        self.timestamp = timestamp
+        _timestamp.wrappedValue = timestamp
     }
 
 }
@@ -63,7 +64,7 @@ extension ContainsTimestamp : Proto3Codable {
         }
         self.unknownFields = try reader.endMessage(token: token)
 
-        self.timestamp = timestamp
+        _timestamp.wrappedValue = timestamp
     }
 
     public func encode(to writer: Wire.ProtoWriter) throws {
@@ -78,7 +79,7 @@ extension ContainsTimestamp : Codable {
 
     public init(from decoder: Swift.Decoder) throws {
         let container = try decoder.container(keyedBy: Wire.StringLiteralCodingKeys.self)
-        self.timestamp = try container.decodeIfPresent(Timestamp.self, forKey: "timestamp")
+        _timestamp.wrappedValue = try container.decodeIfPresent(Timestamp.self, forKey: "timestamp")
     }
 
     public func encode(to encoder: Swift.Encoder) throws {

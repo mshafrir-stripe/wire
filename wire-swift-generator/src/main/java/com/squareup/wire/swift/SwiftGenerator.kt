@@ -147,6 +147,14 @@ class SwiftGenerator private constructor(
       else -> isMap || isRepeated
     }
 
+  private val Field.defaultedValue: CodeBlock?
+    get() = default?.let {
+      return defaultFieldInitializer(type!!, it)
+    } ?: if (isMessage && !isRequiredParameter && !isCollection) {
+        val subType = schema.getType(type!!) as MessageType
+        if (subType!!.fields.all { !it.isRequiredParameter }) CodeBlock.of("%T()", subType.typeName) else null
+    } else null
+
   private val Field.codableDefaultValue: String?
     get() = default?.let {
       return it
@@ -613,8 +621,9 @@ class SwiftGenerator private constructor(
                 CodeBlock.of("%N", field.name)
               }
             }
+
             addStatement(
-              if (field.default != null) "_%N.wrappedValue = %L" else { "self.%N = %L" },
+              if (field.defaultedValue != null) "_%N.wrappedValue = %L" else { "self.%N = %L" },
               field.name,
               initializer,
             )
@@ -780,7 +789,7 @@ class SwiftGenerator private constructor(
                     .map { CodeBlock.of("%S", it) }
                     .joinToCode()
 
-                  val prefix = if (field.default != null) { "_%1N.wrappedValue" } else { "self.%1N" }
+                  val prefix = if (field.defaultedValue != null) { "_%1N.wrappedValue" } else { "self.%1N" }
                   addStatement(
                     "$prefix = try container.$decode($typeArg%2T.self, $forKeys: $keys)",
                     field.name,
@@ -1088,7 +1097,7 @@ class SwiftGenerator private constructor(
         .apply {
           type.fields.filter { it.isRequiredParameter }.forEach { field ->
             addStatement(
-              if (field.default != null) "_%1N.wrappedValue = %1N" else { "self.%1N = %1N" },
+              if (field.defaultedValue != null) "_%1N.wrappedValue = %1N" else { "self.%1N = %1N" },
               field.name,
             )
           }
@@ -1114,7 +1123,7 @@ class SwiftGenerator private constructor(
           .apply {
             type.fields.forEach { field ->
               addStatement(
-                if (field.default != null) "_%1N.wrappedValue = %1N" else { "self.%1N = %1N" },
+                if (field.defaultedValue != null) "_%1N.wrappedValue = %1N" else { "self.%1N = %1N" },
                 field.name,
               )
             }
@@ -1147,10 +1156,9 @@ class SwiftGenerator private constructor(
       if (isIndirect(type, field)) {
         property.addAttribute(AttributeSpec.builder(indirect).build())
       }
-      val default = field.default
-      if (default != null) {
-        val defaultValue = defaultFieldInitializer(field.type!!, default)
-        property.addAttribute(AttributeSpec.builder(defaulted).addArgument("defaultValue: $defaultValue").build())
+      val defaultedValue = field.defaultedValue
+      if (defaultedValue != null) {
+        property.addAttribute(AttributeSpec.builder(defaulted).addArgument("defaultValue: $defaultedValue").build())
       }
 
       if (field.isMap) {

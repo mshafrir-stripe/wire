@@ -11,6 +11,7 @@ public struct VersionTwo {
     public var v2_f32: UInt32?
     public var v2_f64: UInt64?
     public var v2_rs: [String] = []
+    @Defaulted(defaultValue: NestedVersionTwo())
     public var obj: NestedVersionTwo?
     public var en: EnumVersionTwo?
     public var unknownFields: Foundation.Data = .init()
@@ -42,7 +43,7 @@ extension VersionTwo {
         self.v2_f32 = v2_f32
         self.v2_f64 = v2_f64
         self.v2_rs = v2_rs
-        self.obj = obj
+        _obj.wrappedValue = obj
         self.en = en
     }
 
@@ -106,7 +107,7 @@ extension VersionTwo : Proto2Codable {
         self.v2_f32 = v2_f32
         self.v2_f64 = v2_f64
         self.v2_rs = v2_rs
-        self.obj = obj
+        _obj.wrappedValue = obj
         self.en = en
     }
 
@@ -135,7 +136,7 @@ extension VersionTwo : Codable {
         self.v2_f32 = try container.decodeIfPresent(Swift.UInt32.self, firstOfKeys: "v2F32", "v2_f32")
         self.v2_f64 = try container.decodeIfPresent(stringEncoded: Swift.UInt64.self, firstOfKeys: "v2F64", "v2_f64")
         self.v2_rs = try container.decodeProtoArray(Swift.String.self, firstOfKeys: "v2Rs", "v2_rs")
-        self.obj = try container.decodeIfPresent(NestedVersionTwo.self, forKey: "obj")
+        _obj.wrappedValue = try container.decodeIfPresent(NestedVersionTwo.self, forKey: "obj")
         self.en = try container.decodeIfPresent(EnumVersionTwo.self, forKey: "en")
     }
 
