@@ -1961,6 +1961,32 @@ class KotlinGeneratorTest {
   }
 
   @Test
+  fun constructorJvmOverloads() {
+    val schema = buildSchema {
+      add(
+        "message.proto".toPath(),
+        """
+        |syntax = "proto2";
+        |message SomeMessage {
+        |  optional string a = 1;
+        |  optional string b = 2;
+        |  message InnerMessage {
+        |    optional string c = 3;
+        |    optional string d = 8;
+        |  }
+        |}
+        |
+        """.trimMargin(),
+      )
+    }
+
+    val code = KotlinWithProfilesGenerator(schema)
+      .generateKotlin("SomeMessage", constructorJvmOverloads = true)
+    assertThat(code).contains("public class SomeMessage @JvmOverloads constructor(")
+    assertThat(code).contains("public class InnerMessage @JvmOverloads constructor(")
+  }
+
+  @Test
   fun javaInteropAndBuildersOnly() {
     val schema = buildSchema {
       add(

@@ -120,6 +120,7 @@ class KotlinGenerator private constructor(
   private val profile: Profile,
   private val emitAndroid: Boolean,
   private val javaInterOp: Boolean,
+  private val constructorJvmOverloads: Boolean,
   private val emitDeclaredOptions: Boolean,
   private val emitAppliedOptions: Boolean,
   private val rpcCallStyle: RpcCallStyle,
@@ -1061,6 +1062,10 @@ class KotlinGenerator private constructor(
     val constructorBuilder = FunSpec.constructorBuilder()
     val nameAllocator = nameAllocator(message)
     val byteClass = ProtoType.BYTES.typeName
+
+    if (constructorJvmOverloads) {
+      constructorBuilder.addAnnotation(JvmOverloads::class)
+    }
 
     val parametersAndProperties = parametersAndProperties(message, nameAllocator)
     for ((parameter, property) in parametersAndProperties) {
@@ -2859,6 +2864,7 @@ class KotlinGenerator private constructor(
       profile: Profile = Profile(),
       emitAndroid: Boolean = false,
       javaInterop: Boolean = false,
+      constructorJvmOverloads: Boolean = false,
       emitDeclaredOptions: Boolean = true,
       emitAppliedOptions: Boolean = true,
       rpcCallStyle: RpcCallStyle = RpcCallStyle.SUSPENDING,
@@ -2908,6 +2914,7 @@ class KotlinGenerator private constructor(
         memberToKotlinName = memberToKotlinName,
         emitAndroid = emitAndroid,
         javaInterOp = javaInterop || buildersOnly,
+        constructorJvmOverloads = constructorJvmOverloads,
         emitDeclaredOptions = emitDeclaredOptions,
         emitAppliedOptions = emitAppliedOptions,
         rpcCallStyle = rpcCallStyle,
