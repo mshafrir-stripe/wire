@@ -21,6 +21,7 @@ import org.junit.Ignore
 import org.junit.Test
 import squareup.proto2.java.interop.InteropBoxOneOf as InteropBoxOneOfJ2
 import squareup.proto2.java.interop.InteropCamelCase as InteropCamelCaseJ2
+import com.squareup.wire.proto2.kotlin.simple.SimpleMessage as SimpleMessageK
 import squareup.proto2.java.interop.InteropDuration as InteropDurationJ2
 import squareup.proto2.java.interop.InteropJsonName as InteropJsonNameJ2
 import squareup.proto2.java.interop.InteropTest.InteropCamelCase as InteropCamelCaseP2
@@ -58,6 +59,9 @@ import squareup.proto3.kotlin.interop.InteropOptional as InteropOptionalK3
 import squareup.proto3.kotlin.interop.InteropUint64 as InteropUint64K3
 import squareup.proto3.kotlin.interop.InteropWrappers as InteropWrappersK3
 import squareup.proto3.kotlin.interop.TestProto3Optional.InteropOptional as InteropOptionalP3
+import squareup.proto2.kotlin.interop.DimitrisMessage as DimitrisMessageK
+import squareup.proto2.kotlin.interop.DimitrisMessageOuterClass
+import squareup.proto2.kotlin.interop.InteropMessageOuterClass
 
 class InteropTest {
   @Test fun duration() {
@@ -81,6 +85,18 @@ class InteropTest {
     checker.check(InteropDurationJ3(durationOfSeconds(99, 987_654_321L)))
     checker.check(InteropDurationK2(durationOfSeconds(99, 987_654_321L)))
     checker.check(InteropDurationJ2(durationOfSeconds(99, 987_654_321L)))
+  }
+
+  @Test fun checkingInt32ForDimitris() {
+    val checker = InteropChecker(
+      protocMessage = DimitrisMessageOuterClass.DimitrisMessage.newBuilder()
+        .setMyDimitrisInt32(-1_000)
+        .build(),
+      canonicalJson = """{"myDimitrisInt32":-1000}""",
+      wireCanonicalJson = """{"my_dimitris_int32":-1000}""",
+    )
+
+    checker.check(DimitrisMessageK(my_dimitris_int32 = -1_000))
   }
 
   @Test fun uint64() {
