@@ -1,0 +1,14 @@
+syntax = "proto3";
+package squareup.proto3.kotlin.myenum;
+
+message MyMessage {
+  optional string label = 1;
+  optional MyEnum optional_my_enum = 2;
+  MyEnum identity_my_enum = 3;
+}
+
+enum MyEnum {
+  SOME_DEFAULT = 0;
+  SOME_VALUE = 1;
+  UNRECOGNIZED = 2;
+}

@@ -20,6 +20,7 @@ import com.squareup.wire.proto2.kotlin.simple.SimpleMessage as SimpleMessageK
 import com.squareup.wire.proto2.kotlin.simple.SimpleMessageOuterClass
 import okio.ByteString
 import okio.ByteString.Companion.decodeHex
+import okio.ByteString.Companion.toByteString
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import squareup.proto2.java.interop.InteropMessage as InteropMessageJ
@@ -51,6 +52,8 @@ import squareup.proto2.kotlin.interop.type.EnumProto2 as EnumProto2K
 import squareup.proto2.kotlin.interop.type.InteropTypes.EnumProto2
 import squareup.proto2.kotlin.interop.type.InteropTypes.MessageProto2
 import squareup.proto2.kotlin.interop.type.MessageProto2 as MessageProto2K
+import squareup.proto2.kotlin.myenum.MyEnumOuterClass.MyMessage as MyMessageP2
+import squareup.proto2.kotlin.myenum.MyMessage as MyMessageK2
 import squareup.proto2.wire.extensions.WireMessage
 import squareup.proto3.java.interop.type.EnumProto3 as EnumProto3J
 import squareup.proto3.java.interop.type.MessageProto3 as MessageProto3J
@@ -58,8 +61,40 @@ import squareup.proto3.kotlin.interop.type.EnumProto3 as EnumProto3K
 import squareup.proto3.kotlin.interop.type.InteropTypes.EnumProto3
 import squareup.proto3.kotlin.interop.type.InteropTypes.MessageProto3
 import squareup.proto3.kotlin.interop.type.MessageProto3 as MessageProto3K
+import squareup.proto3.kotlin.myenum.MyEnumOuterClass.MyMessage as MyMessageP3
+import squareup.proto3.kotlin.myenum.MyMessage as MyMessageK3
 
 class Proto2WireProtocCompatibilityTests {
+  @Test fun enum() {
+    println("wire --: " + MyMessageK2.ADAPTER.decode("0a0161".decodeHex()))
+    println("wire 00: " + MyMessageK2.ADAPTER.decode("0a01611000".decodeHex()))
+    println("wire 01: " + MyMessageK2.ADAPTER.decode("0a01611001".decodeHex()))
+    println("wire 02: " + MyMessageK2.ADAPTER.decode("0a01611002".decodeHex()))
+    println("goog --: " + MyMessageP2.parseFrom("0a0161".decodeHex().toByteArray()))
+    println("goog 00: " + MyMessageP2.parseFrom("0a01611000".decodeHex().toByteArray()))
+    println("goog 01: " + MyMessageP2.parseFrom("0a01611001".decodeHex().toByteArray()))
+    println("goog 02: " + MyMessageP2.parseFrom("0a01611002".decodeHex().toByteArray()))
+
+    println("wire --: " + MyMessageK3.ADAPTER.decode("0a0161".decodeHex()))
+    println("wire 00: " + MyMessageK3.ADAPTER.decode("0a01611000".decodeHex()))
+    println("wire 01: " + MyMessageK3.ADAPTER.decode("0a016110011801".decodeHex()))
+    println("wire 02: " + MyMessageK3.ADAPTER.decode("0a016110021802".decodeHex()))
+    println("wire 02: " + MyMessageK3.ADAPTER.decode("0a016110021802".decodeHex()).encode().toByteString().hex())
+    println("goog --: " + MyMessageP3.parseFrom("0a0161".decodeHex().toByteArray()))
+    println("goog --: " + MyMessageP3.parseFrom("0a0161".decodeHex().toByteArray()).optionalMyEnum)
+    println("goog --: " + MyMessageP3.parseFrom("0a0161".decodeHex().toByteArray()).optionalMyEnumValue)
+    println("goog --: " + MyMessageP3.parseFrom("0a0161".decodeHex().toByteArray()).identityMyEnum)
+    println("goog --: " + MyMessageP3.parseFrom("0a0161".decodeHex().toByteArray()).identityMyEnumValue)
+    println("goog 00: " + MyMessageP3.parseFrom("0a01611000".decodeHex().toByteArray()))
+    println("goog 01: " + MyMessageP3.parseFrom("0a016110011801".decodeHex().toByteArray()))
+    println("goog 02: " + MyMessageP3.parseFrom("0a016110021802".decodeHex().toByteArray()))
+    println("goog 02: " + MyMessageP3.parseFrom("0a016110021802".decodeHex().toByteArray()).optionalMyEnum)
+    println("goog 02: " + MyMessageP3.parseFrom("0a016110021802".decodeHex().toByteArray()).optionalMyEnumValue)
+    println("goog 02: " + MyMessageP3.parseFrom("0a016110021802".decodeHex().toByteArray()).identityMyEnum)
+    println("goog 02: " + MyMessageP3.parseFrom("0a016110021802".decodeHex().toByteArray()).identityMyEnumValue)
+    println("goog 02: " + MyMessageP3.parseFrom("0a016110021802".decodeHex().toByteArray()).toByteArray().toByteString().hex())
+  }
+
   @Test fun simpleMessage() {
     val wireMessage = SimpleMessageK(
       optional_nested_msg = SimpleMessageK.NestedMessage(806),

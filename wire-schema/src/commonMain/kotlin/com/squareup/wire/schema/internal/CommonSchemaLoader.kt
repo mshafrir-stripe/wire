@@ -59,7 +59,7 @@ internal class CommonSchemaLoader : Loader, ProfileLoader {
    * If true, the schema loader will load the whole graph, including files and types not used by
    * anything in the source path.
    */
-  var loadExhaustively = false
+  var loadExhaustively = true
 
   /** Subset of the schema that was loaded from the source path. */
   var sourcePathFiles: List<ProtoFile>
