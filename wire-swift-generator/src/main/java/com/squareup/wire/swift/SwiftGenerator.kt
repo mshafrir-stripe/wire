@@ -193,7 +193,7 @@ class SwiftGenerator private constructor(
       if (isMessage) {
         val messageType = schema.getType(type!!) as MessageType
 
-        return messageType.supportsEmptyInitialization && messageType.fields.isNotEmpty()
+        return messageType.supportsEmptyInitialization && messageType.declaredFields.isNotEmpty()
       }
       if (isEnum) {
         val enumType = schema.getType(type!!) as EnumType
@@ -319,7 +319,7 @@ class SwiftGenerator private constructor(
     }
 
     // TODO use a NameAllocator
-    val propertyNames = type.fields.map { it.name } + type.oneOfs.map { it.name }
+    val propertyNames = type.declaredFields.map { it.name } + type.oneOfs.map { it.name }
 
     val storageType = structType.nestedType("Storage")
     val storageName = if ("storage" in propertyNames) "_storage" else "storage"
@@ -409,7 +409,7 @@ class SwiftGenerator private constructor(
     }
 
     // Add redaction, which is potentially delegated
-    val requiresRedaction = type.fields.any { it.isRedacted }
+    val requiresRedaction = type.declaredFields.any { it.isRedacted }
 
     if (requiresRedaction) {
       val redactionExtension = ExtensionSpec.builder(structType)
@@ -420,7 +420,7 @@ class SwiftGenerator private constructor(
             .addSuperType(STRING)
             .addSuperType(redactedKey)
             .apply {
-              type.fields.forEach { field ->
+              type.declaredFields.forEach { field ->
                 if (field.isRedacted) {
                   addEnumCase(field.name)
                 }
@@ -604,7 +604,7 @@ class SwiftGenerator private constructor(
         .throws(true)
         .apply {
           // Declare locals into which everything is written before promoting to members.
-          type.fields.forEach { field ->
+          type.declaredFields.forEach { field ->
             val localType = when (type.syntax) {
               PROTO_2 -> if (field.isRepeated || field.isMap) {
                 field.typeName
@@ -633,14 +633,14 @@ class SwiftGenerator private constructor(
             val enumName = oneOfEnumNames.getValue(oneOf)
             addStatement("var %N: %T = nil", oneOf.name, enumName.makeOptional())
           }
-          if (type.fieldsAndOneOfFields.isNotEmpty()) {
+          if (type.declaredFieldsAndOneOfFields.isNotEmpty()) {
             addStatement("")
           }
 
           addStatement("let $token = try $reader.beginMessage()")
           beginControlFlow("while", "let $tag = try $reader.nextTag(token: $token)")
           beginControlFlow("switch", tag)
-          type.fields.forEach { field ->
+          type.declaredFields.forEach { field ->
             val decoder = CodeBlock.Builder()
             if (field.isMap) {
               decoder.add("try $reader.decode(into: &%N", field.safeName)
@@ -697,7 +697,7 @@ class SwiftGenerator private constructor(
 
           // Check required and bind members.
           addStatement("")
-          type.fields.forEach { field ->
+          type.declaredFields.forEach { field ->
             val hasPropertyWrapper = !isIndirect(type, field) && (field.defaultedValue != null || field.isProtoDefaulted)
 
             val initializer = when (type.syntax) {
@@ -738,7 +738,7 @@ class SwiftGenerator private constructor(
         .addParameter("to", writer, protoWriter)
         .throws(true)
         .apply {
-          type.fields.forEach { field ->
+          type.declaredFields.forEach { field ->
             if (field.isMap) {
               addCode("try $writer.encode(tag: %L, value: self.%N", field.tag, field.safeName)
               field.keyType.encoding?.let { keyEncoding ->
@@ -826,13 +826,13 @@ class SwiftGenerator private constructor(
     return ExtensionSpec.builder(structType)
       .addSuperType(codable)
       .apply {
-        val codingKeys = if (type.fieldsAndOneOfFields.isEmpty()) {
+        val codingKeys = if (type.declaredFieldsAndOneOfFields.isEmpty()) {
           structType.nestedType("CodingKeys")
         } else {
           stringLiteralCodingKeys
         }
 
-        if (type.fieldsAndOneOfFields.isEmpty()) {
+        if (type.declaredFieldsAndOneOfFields.isEmpty()) {
           addType(
             // Coding keys still need to be specified on empty messages in order to prevent `unknownFields` from
             // getting serialized via JSON/Codable. In this case, the keys cannot conform to `RawRepresentable`
@@ -846,7 +846,7 @@ class SwiftGenerator private constructor(
         }
 
         // We cannot rely upon built-in Codable support since we need to support multiple keys.
-        if (type.fieldsAndOneOfFields.isNotEmpty()) {
+        if (type.declaredFieldsAndOneOfFields.isNotEmpty()) {
           addFunction(
             FunctionSpec.constructorBuilder()
               .addParameter("from", "decoder", decoder)
@@ -854,7 +854,7 @@ class SwiftGenerator private constructor(
               .throws(true)
               .addStatement("let container = try decoder.container(keyedBy: %T.self)", codingKeys)
               .apply {
-                type.fields.forEach { field ->
+                type.declaredFields.forEach { field ->
                   val hasPropertyWrapper = !isIndirect(type, field) && (field.defaultedValue != null || field.isProtoDefaulted)
 
                   var typeName: TypeName = field.typeName.makeNonOptional()
@@ -941,15 +941,15 @@ class SwiftGenerator private constructor(
               .throws(true)
               .addStatement("var container = encoder.container(keyedBy: %T.self)", codingKeys)
               .apply {
-                if (type.fieldsAndOneOfFields.any { it.codableName != null }) {
+                if (type.declaredFieldsAndOneOfFields.any { it.codableName != null }) {
                   addStatement("let preferCamelCase = encoder.protoKeyNameEncodingStrategy == .camelCase")
                 }
-                if (type.fields.any { !it.isOptional && (it.isCollection || it.isEnum || it.codableDefaultValue != null) }) {
+                if (type.declaredFields.any { !it.isOptional && (it.isCollection || it.isEnum || it.codableDefaultValue != null) }) {
                   addStatement("let includeDefaults = encoder.protoDefaultValuesEncodingStrategy == .include")
                 }
                 addStatement("")
 
-                type.fields.forEach { field ->
+                type.declaredFields.forEach { field ->
                   fun addEncode() {
                     var encode = "encode"
                     if (field.isRepeated) {
@@ -1048,7 +1048,7 @@ class SwiftGenerator private constructor(
     includeOneOfs: Boolean = true,
     fieldsFilter: (Field) -> Boolean = { true },
   ) = apply {
-    type.fields.filter(fieldsFilter).forEach { field ->
+    type.declaredFields.filter(fieldsFilter).forEach { field ->
       addParameter(
         ParameterSpec.builder(field.safeName, field.typeName)
           .apply {
@@ -1077,7 +1077,7 @@ class SwiftGenerator private constructor(
     storageType: DeclaredTypeName,
     oneOfEnumNames: Map<OneOf, DeclaredTypeName>,
   ) {
-    val needsConfigure = type.fields.any { !it.isRequiredParameter } || type.oneOfs.isNotEmpty()
+    val needsConfigure = type.declaredFields.any { !it.isRequiredParameter } || type.oneOfs.isNotEmpty()
 
     addFunction(
       FunctionSpec.constructorBuilder()
@@ -1105,7 +1105,7 @@ class SwiftGenerator private constructor(
         }
         .apply {
           val storageParams = mutableListOf<CodeBlock>()
-          type.fields.filter { it.isRequiredParameter }.forEach { field ->
+          type.declaredFields.filter { it.isRequiredParameter }.forEach { field ->
             storageParams += CodeBlock.of("%1N: %1N", field.safeName)
           }
 
@@ -1128,7 +1128,7 @@ class SwiftGenerator private constructor(
     type: MessageType,
     oneOfEnumNames: Map<OneOf, DeclaredTypeName>,
   ) {
-    val needsConfigure = type.fields.any { !it.isRequiredParameter } || type.oneOfs.isNotEmpty()
+    val needsConfigure = type.declaredFields.any { !it.isRequiredParameter } || type.oneOfs.isNotEmpty()
 
     addFunction(
       FunctionSpec.constructorBuilder()
@@ -1155,7 +1155,7 @@ class SwiftGenerator private constructor(
           }
         }
         .apply {
-          type.fields.filter { it.isRequiredParameter }.forEach { field ->
+          type.declaredFields.filter { it.isRequiredParameter }.forEach { field ->
             val hasPropertyWrapper = !isIndirect(type, field) && (field.defaultedValue != null || field.isProtoDefaulted)
             val fieldName = if (hasPropertyWrapper) { "_${field.safeName}" } else { field.safeName }
             addStatement(
@@ -1181,7 +1181,7 @@ class SwiftGenerator private constructor(
     oneOfEnumNames: Map<OneOf, DeclaredTypeName>,
     forStorageType: Boolean = false,
   ) {
-    type.fields.forEach { field ->
+    type.declaredFields.forEach { field ->
       val property = PropertySpec.varBuilder(field.safeName, field.typeName, PUBLIC)
       if (!forStorageType && field.documentation.isNotBlank()) {
         property.addDoc("%L\n", field.documentation.sanitizeDoc())
@@ -1339,7 +1339,7 @@ class SwiftGenerator private constructor(
       .build()
     addProperty(subscript)
 
-    type.fields.forEach { field ->
+    type.declaredFields.forEach { field ->
       val property = PropertySpec.varBuilder(field.safeName, field.typeName, PUBLIC)
         .getter(
           FunctionSpec.getterBuilder()
@@ -1757,7 +1757,7 @@ class SwiftGenerator private constructor(
         val dagChecker = DagChecker(nodes) { protoType ->
           when (val type = schema.getType(protoType)!!) {
             is MessageType -> {
-              type.fieldsAndOneOfFields.map { it.type!! }
+              type.declaredFieldsAndOneOfFields.map { it.type!! }
                 // Remove edges known to need an indirection to break an already-seen cycle.
                 .filter { it !in (indirections[protoType] ?: emptySet<ProtoType>()) }
             }

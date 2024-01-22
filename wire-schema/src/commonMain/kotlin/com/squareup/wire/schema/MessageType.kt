@@ -59,6 +59,9 @@ data class MessageType(
   val requiredFields: List<Field>
     get() = fieldsAndOneOfFields.filter { it.isRequired }
 
+  val declaredFieldsAndOneOfFields: List<Field>
+    get() = declaredFields + oneOfs.flatMap { it.fields }
+
   val fieldsAndOneOfFields: List<Field>
     get() = declaredFields + extensionFields + oneOfs.flatMap { it.fields }
 
