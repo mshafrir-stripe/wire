@@ -125,7 +125,6 @@ class WireCompiler internal constructor(
   val kotlinRpcCallStyle: RpcCallStyle,
   val kotlinRpcRole: RpcRole,
   val kotlinSingleMethodServices: Boolean,
-  val kotlinGrpcServerCompatible: Boolean,
   val kotlinNameSuffix: String?,
   val kotlinBuildersOnly: Boolean,
   val kotlinEscapeKeywords: Boolean,
@@ -156,7 +155,6 @@ class WireCompiler internal constructor(
         rpcRole = kotlinRpcRole,
         singleMethodServices = kotlinSingleMethodServices,
         boxOneOfsMinSize = kotlinBoxOneOfsMinSize,
-        grpcServerCompatible = kotlinGrpcServerCompatible,
         nameSuffix = kotlinNameSuffix,
         buildersOnly = kotlinBuildersOnly,
         escapeKotlinKeywords = kotlinEscapeKeywords,
@@ -317,7 +315,6 @@ class WireCompiler internal constructor(
       var kotlinRpcCallStyle = RpcCallStyle.SUSPENDING
       var kotlinRpcRole = RpcRole.CLIENT
       var kotlinSingleMethodServices = false
-      var kotlinGrpcServerCompatible = false
       var kotlinNameSuffix: String? = null
       var kotlinBuildersOnly = false
       var kotlinEscapeKeywords = false
@@ -404,7 +401,9 @@ class WireCompiler internal constructor(
 
           arg == NO_KOTLIN_EXCLUSIVE -> kotlinExclusive = false
           arg == KOTLIN_SINGLE_METHOD_SERVICES -> kotlinSingleMethodServices = true
-          arg == KOTLIN_GRPC_SERVER_COMPATIBLE -> kotlinGrpcServerCompatible = true
+          arg == KOTLIN_GRPC_SERVER_COMPATIBLE -> {
+            // TODO(Benoit) print warning or throw explaining what's up?
+          }
           arg == KOTLIN_BUILDERS_ONLY -> kotlinBuildersOnly = true
           arg == KOTLIN_ESCAPE_KEYWORDS -> kotlinEscapeKeywords = true
           arg == ANDROID -> emitAndroid = true
@@ -459,7 +458,6 @@ class WireCompiler internal constructor(
         kotlinRpcCallStyle = kotlinRpcCallStyle,
         kotlinRpcRole = kotlinRpcRole,
         kotlinSingleMethodServices = kotlinSingleMethodServices,
-        kotlinGrpcServerCompatible = kotlinGrpcServerCompatible,
         kotlinNameSuffix = kotlinNameSuffix,
         kotlinBuildersOnly = kotlinBuildersOnly,
         kotlinEscapeKeywords = kotlinEscapeKeywords,
